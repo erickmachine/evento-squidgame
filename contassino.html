@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Contas Premium: Edição Squid Game</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+        :root {
+            --primary-color: #ff0066;
+            --secondary-color: #00ff99;
+            --background-color: #1a1a1a;
+            --text-color: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .background-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: url('https://i.imgur.com/XqZDvNZ.jpg') center/cover no-repeat;
+            opacity: 0.1;
+            animation: backgroundPan 60s linear infinite;
+        }
+
+        @keyframes backgroundPan {
+            from { transform: scale(1.1) rotate(0deg); }
+            to { transform: scale(1.1) rotate(360deg); }
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            opacity: 0.5;
+            animation: float 5s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        header {
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .logo {
+            font-size: 2em;
+            font-weight: bold;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            position: relative;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .logo::before, .logo::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            z-index: -1;
+            transition: all 0.3s ease;
+        }
+
+        .logo::before {
+            left: -3px;
+            transform: skew(-10deg);
+        }
+
+        .logo::after {
+            right: -3px;
+            transform: skew(10deg);
+        }
+
+        .logo:hover::before { transform: skew(-15deg); }
+        .logo:hover::after { transform: skew(15deg); }
+
+        .subtitle {
+            font-size: 1em;
+            color: var(--secondary-color);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .game-container {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 15px;
+            flex-wrap: wrap;
+        }
+
+        .game-box {
+            background-color: rgba(42, 42, 42, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(255, 0, 102, 0.3);
+            max-width: 100%;
+            width: 100%;
+            transition: transform 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .game-box:hover {
+            transform: scale(1.02);
+        }
+
+        #canvas {
+            background-color: #ffffff;
+            border: 3px solid var(--primary-color);
+            border-radius: 10px;
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 20px;
+            transition: transform 0.3s ease;
+            touch-action: none;
+        }
+
+        #canvas:hover {
+            transform: scale(1.05);
+        }
+
+        #guess-input {
+            width: 100%;
+            padding: 10px;
+            font-size: 1em;
+            border: none;
+            border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            margin-bottom: 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        #guess-input:focus {
+            background-color: rgba(255, 255, 255, 0.2);
+            outline: none;
+        }
+
+        button {
+            padding: 12px 20px;
+            font-size: 1em;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 5px;
+            touch-action: manipulation;
+        }
+
+        #submit-guess {
+            background-color: var(--primary-color);
+            color: var(--text-color);
+        }
+
+        #submit-guess:hover, #submit-guess:active {
+            background-color: #ff1493;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(255, 0, 102, 0.5);
+        }
+
+        #change-drawing {
+            background-color: var(--secondary-color);
+            color: var(--background-color);
+        }
+
+        #change-drawing:hover, #change-drawing:active {
+            background-color: #00cc7a;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 255, 153, 0.5);
+        }
+
+        #change-drawing:disabled {
+            background-color: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        #message, #score, #time-left {
+            margin-top: 15px;
+            font-size: 1.1em;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        #prize-notification {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 1000;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.7);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        #close-notification {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background-color: var(--secondary-color);
+            color: var(--background-color);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #close-notification:hover, #close-notification:active {
+            background-color: #00cc7a;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 255, 153, 0.5);
+        }
+
+        .leaderboard {
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            max-width: 100%;
+            width: 100%;
+        }
+
+        .leaderboard h3 {
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+        }
+
+        .leaderboard ol {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .leaderboard li {
+            margin-bottom: 5px;
+            color: var(--text-color);
+        }
+
+        footer {
+            background-color: rgba(0, 0, 0, 0.8);
+            color: var(--text-color);
+            text-align: center;
+            padding: 15px;
+            margin-top: auto;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .footer-section {
+            margin: 10px;
+        }
+
+        .social-icons a {
+            color: var(--text-color);
+            font-size: 1.5em;
+            margin: 0 10px;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .social-icons a:hover {
+            color: var(--primary-color);
+        }
+
+        .whatsapp-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #25D366;
+            color: white;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 30px;
+            text-decoration: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .whatsapp-button:hover, .whatsapp-button:active {
+            transform: scale(1.1);
+        }
+
+        .welcome-message {
+            background-color: rgba(0, 255, 153, 0.2);
+            border-left: 5px solid var(--secondary-color);
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+        }
+
+        .welcome-message img {
+            width: 40px;
+            height: 40px;
+            margin-right: 10px;
+            border-radius: 50%;
+        }
+
+        @media (max-width: 480px) {
+            .game-box {
+                padding: 15px;
+            }
+            .logo {
+                font-size: 1.8em;
+            }
+            .whatsapp-button {
+                width: 50px;
+                height: 50px;
+                font-size: 25px;
+            }
+            button {
+                padding: 10px 15px;
+                font-size: 0.9em;
+            }
+        }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+
+        /* Estilos para a mensagem do ADM NICOLAS */
+        #adm-nicolas {
+            display: none;
+            background-color: rgba(255, 0, 102, 0.2);
+            border-left: 5px solid var(--primary-color);
+            padding: 10px;
+            margin-top: 20px;
+            border-radius: 5px;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        #adm-nicolas img {
+            width: 40px;
+            height: 40px;
+            margin-right: 10px;
+            border-radius: 50%;
+        }
+
+        /* New styles for enhanced effects */
+        .neon-text {
+            text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #fff, 0 0 20px var(--primary-color), 0 0 35px var(--primary-color), 0 0 40px var(--primary-color), 0 0 50px var(--primary-color), 0 0 75px var(--primary-color);
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f0f0f0;
+            position: absolute;
+            top: -10px;
+            will-change: transform;
+        }
+
+        @keyframes confettiRain {
+            0% {
+                opacity: 1;
+                transform: translateY(0) rotateX(0) rotateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(100vh) rotateX(720deg) rotateY(45deg);
+            }
+        }
+
+        .hint-button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;transition: background-color 0.3s;
+        }
+
+        .hint-button:hover, .hint-button:active {
+            background-color: #45a049;
+        }
+
+        #hint-text {
+            margin-top: 10px;
+            font-style: italic;
+            color: #888;
+        }
+
+        .difficulty-selector {
+            margin-bottom: 15px;
+        }
+
+        .difficulty-selector label {
+            margin-right: 10px;
+        }
+
+        .difficulty-selector select {
+            padding: 5px;
+            font-size: 16px;
+            border-radius: 5px;
+        }
+
+        #streak-counter {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--secondary-color);
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-animation"></div>
+    <div class="particles"></div>
+    <header>
+        <h1 class="logo neon-text">Contas Premium</h1>
+        <p class="subtitle pulse">Edição Squid Game</p>
+    </header>
+    <div class="game-container">
+        <div class="game-box">
+            <div class="welcome-message">
+                <img src="/img/sout.jpg" alt="ADM MAX">
+                <p><strong>ADM MAX:</strong> Olá, tudo certo? Bem-vindo ao jogo!</p>
+            </div>
+            <div class="difficulty-selector">
+                <label for="difficulty">Dificuldade:</label>
+                <select id="difficulty">
+                    <option value="easy">Fácil</option>
+                    <option value="medium" selected>Médio</option>
+                    <option value="hard">Difícil</option>
+                </select>
+            </div>
+            <canvas id="canvas" width="300" height="300"></canvas>
+            <input type="text" id="guess-input" placeholder="Digite sua resposta" aria-label="Digite sua resposta">
+            <button id="submit-guess">Adivinhar</button>
+            <button id="change-drawing">Trocar Desenho</button>
+            <button id="hint-button" class="hint-button">Dica</button>
+            <p id="hint-text"></p>
+            <p id="score">Pontuação: 0</p>
+            <p id="streak-counter">Sequência: 0</p>
+            <p id="time-left">Tempo: 60s</p>
+            <p id="message"></p>
+            <div id="adm-nicolas">
+                <img src="img/sucuna.jpeg" alt="ADM NICOLAS">
+                <p><strong>ADM NICOLAS:</strong> Qualquer dúvida, estou a disposição também!</p>
+            </div>
+        </div>
+        <div class="leaderboard">
+            <h3>Melhores Pontuações</h3>
+            <ol id="leaderboard-list"></ol>
+        </div>
+    </div>
+    <div id="prize-notification">
+        <h2>Parabéns!</h2>
+        <p>Você ganhou mais pontos!</p>
+        <button id="close-notification">Fechar</button>
+    </div>
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Sobre o Jogo</h3>
+                <p>Inspirado na série Squid Game</p>
+            </div>
+            <div class="footer-section">
+                <h3>Contato</h3>
+                <p>Email: staff@contaspremium.com</p>
+            </div>
+            <div class="footer-section social-icons">
+                <a href="#" aria-label="Facebook">📘</a>
+                <a href="#" aria-label="Twitter">🐦</a>
+                <a href="#" aria-label="Instagram">📷</a>
+            </div>
+        </div>
+        <p>&copy; 2023 Squid Game Challenge. Todos os direitos reservados.</p>
+    </footer>
+    <a href="https://wa.me/1234567890" class="whatsapp-button" aria-label="Contate-nos via WhatsApp">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+            <path d="M3.4 2.4c2.9-2.9 7.7-2.9 10.6 0l.5.5c2.9 2.9 2.9 7.7 0 10.6l-2.1 2.1c-1.3 1.3-3.1 2-4.9 2-1.9 0-3.6-.7-4.9-2l-.5-.5c-2.9-2.9-2.9-7.7 0-10.6l2.1-2.1zm6.6 1.4c-2.3-2.3-6-2.3-8.3 0l-2.1 2.1c-2.3 2.3-2.3 6 0 8.3l.5.5c1.1 1.1 2.6 1.7 4.2 1.7s3.1-.6 4.2-1.7l2.1-2.1c2.3-2.3 2.3-6 0-8.3l-.5-.5zm-1.4 4.6c-.4-.4-1-.4-1.4 0l-1.4 1.4-1.4-1.4c-.4-.4-1-.4-1.4 0-.4.4-.4 1 0 1.4l1.4 1.4-1.4 1.4c-.4.4-.4 1 0 1.4.2.2.5.3.7.3.3 0 .5-.1.7-.3l1.4-1.4 1.4 1.4c.2.2.5.3.7.3.3 0 .5-.1.7-.3.4-.4.4-1 0-1.4l-1.4-1.4 1.4-1.4c.4-.4.4-1 0-1.4z"/>
+        </svg>
+    </a>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const guessInput = document.getElementById('guess-input');
+        const submitGuess = document.getElementById('submit-guess');
+        const changeDrawing = document.getElementById('change-drawing');
+        const scoreElement = document.getElementById('score');
+        const timeLeftElement = document.getElementById('time-left');
+        const messageElement = document.getElementById('message');
+        const prizeNotification = document.getElementById('prize-notification');
+        const closeNotification = document.getElementById('close-notification');
+        const leaderboardList = document.getElementById('leaderboard-list');
+        const difficultySelector = document.getElementById('difficulty');
+        const hintButton = document.getElementById('hint-button');
+        const hintText = document.getElementById('hint-text');
+        const streakCounter = document.getElementById('streak-counter');
+
+        let score = 0;
+        let currentWord = '';
+        let changeCount = 0;
+        let timeLeft = 60;
+        let timerInterval;
+        let leaderboard = [];
+        let streak = 0;
+        let hintsUsed = 0;
+
+        const squidGameWords = [
+            'polvo', 'guarda-chuva', 'coelho', 'estrela', 'triangulo',
+            'circulo', 'quadrado', 'peixe', 'borboleta', 'flor',
+            'dalgona', 'corda', 'bola', 'vidro', 'boneca',
+            'mascara', 'cofre', 'escada', 'ponte', 'terno'
+        ];
+
+        function drawSquidGameShape() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#ff0066';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+
+            switch(currentWord) {
+                case 'polvo':
+                    ctx.arc(150, 100, 50, 0, Math.PI * 2);
+                    for (let i = 0; i < 8; i++) {
+                        ctx.moveTo(150, 100);
+                        ctx.quadraticCurveTo(
+                            150 + 100 * Math.cos(i * Math.PI / 4),
+                            100 + 100 * Math.sin(i * Math.PI / 4),
+                            150 + 120 * Math.cos(i * Math.PI / 4),
+                            100 + 120 * Math.sin(i * Math.PI / 4)
+                        );
+                    }
+                    break;
+                case 'guarda-chuva':
+                    ctx.arc(150, 100, 80, Math.PI, 0);
+                    ctx.moveTo(150, 100);
+                    ctx.lineTo(150, 280);
+                    ctx.moveTo(130, 260);
+                    ctx.lineTo(170, 260);
+                    break;
+                case 'coelho':
+                    ctx.ellipse(150, 200, 40, 60, 0, 0, Math.PI * 2);
+                    ctx.moveTo(110, 140);
+                    ctx.quadraticCurveTo(130, 60, 150, 140);
+                    ctx.moveTo(190, 140);
+                    ctx.quadraticCurveTo(170, 60, 150, 140);
+                    break;
+                case 'estrela':
+                    for (let i = 0; i < 5; i++) {
+                        ctx.lineTo(150 + 80 * Math.cos(i * 4 * Math.PI / 5 - Math.PI / 2),
+                                   150 + 80 * Math.sin(i * 4 * Math.PI / 5 - Math.PI / 2));
+                        ctx.lineTo(150 + 30 * Math.cos((i * 4 + 2) * Math.PI / 5 - Math.PI / 2),
+                                   150 + 30 * Math.sin((i * 4 + 2) * Math.PI / 5 - Math.PI / 2));
+                    }
+                    ctx.closePath();
+                    break;
+                case 'triangulo':
+                    ctx.moveTo(150, 50);
+                    ctx.lineTo(50, 250);
+                    ctx.lineTo(250, 250);
+                    ctx.closePath();
+                    break;
+                case 'circulo':
+                    ctx.arc(150, 150, 100, 0, Math.PI * 2);
+                    break;
+                case 'quadrado':
+                    ctx.rect(50, 50, 200, 200);
+                    break;
+                case 'peixe':
+                    ctx.moveTo(50, 150);
+                    ctx.quadraticCurveTo(150, 50, 250, 150);
+                    ctx.quadraticCurveTo(150, 250, 50, 150);
+                    ctx.moveTo(250, 150);
+                    ctx.lineTo(280, 180);
+                    ctx.lineTo(280, 120);
+                    ctx.closePath();
+                    break;
+                case 'borboleta':
+                    ctx.moveTo(150, 100);
+                    ctx.bezierCurveTo(200, 50, 250, 150, 150, 200);
+                    ctx.moveTo(150, 100);
+                    ctx.bezierCurveTo(100, 50, 50, 150, 150, 200);
+                    ctx.moveTo(140, 150);
+                    ctx.lineTo(160, 150);
+                    break;
+                case 'flor':
+                    for (let i = 0; i < 6; i++) {
+                        ctx.ellipse(150, 150, 50, 20, i * Math.PI / 3, 0, Math.PI * 2);
+                    }
+                    ctx.arc(150, 150, 20, 0, Math.PI * 2);
+                    break;
+                case 'dalgona':
+                    ctx.arc(150, 150, 80, 0, Math.PI * 2);
+                    ctx.moveTo(100, 150);
+                    ctx.lineTo(200, 150);
+                    ctx.moveTo(150, 100);
+                    ctx.lineTo(150, 200);
+                    break;
+                case 'corda':
+                    ctx.moveTo(50, 150);
+                    ctx.bezierCurveTo(100, 50, 200, 250, 250, 150);
+                    break;
+                case 'bola':
+                    ctx.arc(150, 150, 80, 0, Math.PI * 2);
+                    ctx.moveTo(150, 70);
+                    ctx.lineTo(150, 230);
+                    ctx.moveTo(70, 150);
+                    ctx.lineTo(230, 150);
+                    break;
+                case 'vidro':
+                    ctx.rect(50, 50, 200, 200);
+                    ctx.moveTo(50, 50);
+                    ctx.lineTo(250, 250);
+                    ctx.moveTo(250, 50);
+                    ctx.lineTo(50, 250);
+                    break;
+                case 'boneca':
+                    ctx.arc(150, 100, 50, 0, Math.PI * 2);
+                    ctx.rect(100, 150, 100, 100);
+                    ctx.moveTo(100, 250);
+                    ctx.lineTo(80, 300);
+                    ctx.moveTo(200, 250);
+                    ctx.lineTo(220, 300);
+                    break;
+                case 'mascara':
+                    ctx.arc(150, 150, 80, 0, Math.PI * 2);
+                    ctx.moveTo(110, 130);
+                    ctx.arc(110, 130, 20, 0, Math.PI * 2);
+                    ctx.moveTo(190, 130);
+                    ctx.arc(190, 130, 20, 0, Math.PI * 2);
+                    break;
+                case 'cofre':
+                    ctx.rect(75, 75, 150, 200);
+                    ctx.arc(200, 175, 20, 0, Math.PI * 2);
+                    break;
+                case 'escada':
+                    for (let i = 0; i < 5; i++) {
+                        ctx.moveTo(50 + i * 40, 250 - i * 40);
+                        ctx.lineTo(90 + i * 40, 250 - i * 40);
+                        ctx.lineTo(90 + i * 40, 210 - i * 40);
+                    }
+                    break;
+                case 'ponte':
+                    ctx.moveTo(50, 200);
+                    ctx.quadraticCurveTo(150, 100, 250, 200);
+                    ctx.moveTo(50, 220);
+                    ctx.lineTo(250, 220);
+                    break;
+                case 'terno':
+                    ctx.moveTo(150, 50);
+                    ctx.lineTo(100, 100);
+                    ctx.lineTo(200, 100);
+                    ctx.closePath();
+                    ctx.rect(100, 100, 100, 150);
+                    ctx.moveTo(150, 100);
+                    ctx.lineTo(150, 250);
+                    break;
+            }
+
+            ctx.stroke();
+
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#00ff99';
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+        }
+
+        function startNewRound() {
+            currentWord = squidGameWords[Math.floor(Math.random() * squidGameWords.length)];
+            drawSquidGameShape();
+            updateMessage('Adivinhe o desenho!');
+            changeCount = 0;
+            changeDrawing.disabled = false;
+            resetTimer();
+            hintText.textContent = '';
+            hintsUsed = 0;
+        }
+
+        function updateScore(points) {
+            score += points;
+            scoreElement.textContent = `Pontuação: ${score}`;
+            scoreElement.style.animation = 'glow 0.5s ease-in-out';
+            setTimeout(() => {
+                scoreElement.style.animation = '';
+            }, 500);
+            updateLeaderboard();
+        }
+
+        function updateMessage(msg) {
+            messageElement.textContent = msg;
+            messageElement.style.animation = 'fadeIn 0.5s ease-out';
+            setTimeout(() => {
+                messageElement.style.animation = '';
+            }, 500);
+        }
+
+        function showPrizeNotification() {
+            prizeNotification.style.display = 'block';
+            createConfetti();
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            timeLeft = getDifficultyTime();
+            updateTimerDisplay();
+            startTimer();
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            timeLeftElement.textContent = `Tempo: ${timeLeft}s`;
+        }
+
+        function endGame() {
+            updateMessage('Tempo esgotado! Jogo terminado.');
+            submitGuess.disabled = true;
+            changeDrawing.disabled = true;
+            hintButton.disabled = true;
+        }
+
+        function updateLeaderboard() {
+            leaderboard.push(score);
+            leaderboard.sort((a, b) => b - a);
+            leaderboard = leaderboard.slice(0, 5);
+            
+            leaderboardList.innerHTML = '';
+            leaderboard.forEach((score, index) => {
+                const li = document.createElement('li');
+                li.textContent = `${index + 1}. ${score} pontos`;
+                leaderboardList.appendChild(li);
+            });
+        }
+
+        function createParticles() {
+            const particlesContainer = document.querySelector('.particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                particle.style.width = `${Math.random() * 10 + 5}px`;
+                particle.style.height = particle.style.width;
+                particle.style.animationDuration = `${Math.random() * 2 + 3}s`;
+                particle.style.animationDelay = `${Math.random() * 2}s`;
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        function createConfetti() {
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.classList.add('confetti');
+                confetti.style.left = `${Math.random() * 100}%`;
+                confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                confetti.style.animation = `confettiRain ${Math.random() * 3 + 2}s linear`;
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 5000);
+            }
+        }
+
+        function getDifficultyTime() {
+            const difficulty = difficultySelector.value;
+            switch (difficulty) {
+                case 'easy':
+                    return 90;
+                case 'hard':
+                    return 30;
+                default:
+                    return 60;
+            }
+        }
+
+        function getHint() {
+            if (hintsUsed < 2) {
+                const hintLength = Math.ceil(currentWord.length / 3);
+                const hint = currentWord.slice(0, hintLength) + '_'.repeat(currentWord.length - hintLength);
+                hintText.textContent = `Dica: ${hint}`;
+                hintsUsed++;
+                updateScore(-5);
+            } else {
+                hintText.textContent = 'Limite de dicas atingido!';
+            }
+        }
+
+        submitGuess.addEventListener('click', () => {
+            const guess = guessInput.value.toLowerCase();
+            guessInput.value = '';
+
+            if (guess === currentWord) {
+                updateScore(10 + (getDifficultyTime() - timeLeft));
+                updateMessage(`Correto! Era "${currentWord}".`);
+                showPrizeNotification();
+                streak++;
+                streakCounter.textContent = `Sequência: ${streak}`;
+                startNewRound();
+            } else {
+                updateScore(-2);
+                updateMessage('Incorreto. Tente novamente!');
+                streak = 0;
+                streakCounter.textContent = `Sequência: ${streak}`;
+                canvas.style.animation = 'shake 0.5s';
+                setTimeout(() => {
+                    canvas.style.animation = '';
+                }, 500);
+            }
+        });
+
+        changeDrawing.addEventListener('click', () => {
+            if (changeCount < 1) {
+                startNewRound();
+                changeCount++;
+                if (changeCount >= 1) {
+                    changeDrawing.disabled = true;
+                }
+            }
+        });
+
+        closeNotification.addEventListener('click', () => {
+            prizeNotification.style.display = 'none';
+            startNewRound();
+        });
+
+        guessInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                submitGuess.click();
+            }
+        });
+
+        hintButton.addEventListener('click', getHint);
+
+        difficultySelector.addEventListener('change', () => {
+            resetTimer();
+        });
+
+        // Mobile-specific event listeners
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent scrolling when touching the canvas
+        });
+
+        // Disable zoom on double tap for mobile devices
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', (e) => {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
+        createParticles();
+        startNewRound();
+        startTimer();
+
+        // Adicionando a mensagem do ADM NICOLAS após 5 segundos
+        setTimeout(() => {
+            const admNicolas = document.getElementById('adm-nicolas');
+            admNicolas.style.display = 'flex';
+            setTimeout(() => {
+                admNicolas.style.opacity = '1';
+            }, 50);
+        }, 5000);
+    </script>
+</body>
+</html>
+

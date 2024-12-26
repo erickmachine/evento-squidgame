@@ -1,0 +1,5 @@
+
+[[redirects]]
+from = "/*"
+to = "/contassino.html"
+status = 200
